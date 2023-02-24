@@ -1,7 +1,7 @@
 ﻿# [DbUp](https://dbup.readthedocs.io/en/latest/) Migration Playground
 
 Contains a sample [DbUp](https://dbup.readthedocs.io/en/latest/) playground console application with the popular [Northwind database](./DBUpMigrationPlayground/InitialLoad/NorthwindCreation.sql) database.
-You run the application and the already [Embedded Resource scripts](./DBUpMigrationPlayground/Scripts) will be uploaded to the DB configured in the appsettings.json
+You run the application and the already [Embedded Resource scripts](./DBUpMigrationPlayground/Scripts) will be uploaded to the DB configured in the [appsettings.json](./DBUpMigrationPlayground/appsettings.json)
 You can always delete the db by [executing the pregenerated drop script](./DBUpMigrationPlayground/InitialLoad/drop_DB.sql). 
 
 
@@ -16,7 +16,7 @@ but it is specified
 If you rename a class or property, the schema migration script will delete the corresponding table or column and create a new one. 
 ```
 
-EF Core renames in place the table and a column for comparison - data will not be lost.
+For comparison, EF Core renames in place a table and a column - data will not be lost.
 
 DbUp does not count on ORM model out of which a migration is generated, but gives you freedom and is technology agnostic.
 
@@ -28,12 +28,24 @@ If we are starting to use DB for an existing project, we need an initial transit
 
 ### Generate Initial State Script
 
-SQL Server Management Studio does provide tools to assist with this, but I found it took me a while to get all the right settings to export things the way I wanted, in a way that would allow DbUp to repeatedly apply these changes without error.
+SQL Server Management Studio does provide tools to assist with this, but it  may took a while to get all the right settings to export things in a way that would allow DbUp to repeatedly apply these changes without error.
 
 Right click on the **database**, select tasks, **Generate scripts**
 Select which ones you want (procs, functions, views, etc).
 Select tables, views, procedures separately and keep them in a separate file.
-Naming conventions are always helpful:
+
+On the output path selection page, click on **Advanced**. 
+There are two important settings you need to be careful of:
+
++ Set Script USE DATABASE = false if you want to specify the DB upfront as a parameter
++ Check for object existence = true
++ Chose CREATE or DROP script. Store them separately, the down script is helpful for rolling back state. 
++ Data can be generated as part of the create table option. The option to include data inserts is **Types of data to script** -> **Data only**.
+
+For easier diff you can select **Save as** ANSI text.
+
+
+### Naming conventions are always helpful
 TODO:PascalCase or snake_case naming convention
 
 + [Scripts/Up/00001.create_tables_initial_state.sql](DBUpMigrationPlayground/Scripts/00001.create_tables_initial_state.sql)
@@ -42,19 +54,17 @@ TODO:PascalCase or snake_case naming convention
 + [Scripts/Up/00004.create_foreign_keys_initial_state.sql](./DBUpMigrationPlayground/Scripts/00004.create_foreign_keys_initial_state.sql)
 + [Scripts/Up/00005.create_stored_procedures_initial_state.sql](./DBUpMigrationPlayground/Scripts/00005.create_stored_procedures_initial_state.sql)
 
-If you have table constraints, extract the create table statements to execute them separately, in order to have smooth data insertion, without constraints error. Foreign keys are below table creation in the generated create table script. You can extract the foreing keys in a separate sql file. Data can be inserted withou constraint erros from the data script already genmerated, and the foreign keys can be created.
-To guarantee order of script execute, prefix the files with a number, files are lexicographically ordered upon exection. Note: We have zeros in front, to guarantee for ex: 4 will be before 11.
-On the output path selection page, click on **Advanced**. 
-There are two important settings you need to be careful of:
+If you have table constraints, extract the create table statements to execute them separately, in order to have smooth data insertion, without constraints error.
 
-+ Set Script USE DATABASE = false if you want to specify the DB upfront as a parameter
-+ Check for object existence = true
-+ Chose CREATE or DROP script. Store them separately, the down script is helpful for rolling back state. Or you can generate Drop furst and the untick append to file on Create script generation.
-+ Data can be generated as part of the create table option. The option to include data inserts is **Types of data to script** -> **Data only**.
+1.Foreign keys are generated below table creation in the generated create table script. You can extract the foreing keys in a separate sql file. 
 
-For easier diff you can select **Save as** ANSI text.
+2.Data can be inserted without constraint errors from the data script already generated.
 
-Upload and Rollback scripts can be a separate folder respectively - Scripts and DowngradeScripts.
+3.After the data is inserted, the foreign keys can be created.
+
+To guarantee script executution order, prefix the files with a number. Files are lexicographically ordered upon exection. Note: We have zeros in front, to guarantee for ex: 4 will be before 11.
+
+Upload/Scripts and Rollback/Downgrade scripts can be created in separate folders.
 
 ### TODO:Generate Scripts from the command line
 Since script extraction is performed only on initial transition generation, we may start with Sql Management Studio Studio Wizard Integraion and generate scripts from command line if the scripts generation process is needed to be automatic.
@@ -75,19 +85,18 @@ Place the Upload transitions in a Scrits subfolder, you can have different folde
 
 For example, I have crated scrit [Scripts/00006.alter_employeeTerritires_add_NewColumn_table.sql](./DBUpMigrationPlayground/Scripts/00006.alter_employeeTerritires_add_NewColumn_table.sql) to add a new column to a table. 
 Again, naming convetions can be useful:
-+ If you are adding a new table — {TransitionVersion}.CreateTable_Blog
-+ If you are rename Name a column to BlogName — {TransitionVersion}.AlterTable_RenameName_To_BlogName
-+ If you are adding more than one table, the name of the feature or some other composite name can be used — {TransitionVersion}.CreateTable_ExpenseHistory_ExpenseItem
-+ If you are adding a new column NewColumn to a table Blog — {TransitionVersion}.AlterTable_Blog_AddColumn_NewColumn
-+ If you are adding a view - {TransitionVersion}.CreateView_ExpenseTotal
-+ If you are alter a view - {TransitionVersion}.AlterView_ExpenseTotal_StaticColumn
-+ If you are seeding data — {TransitionVersion}.SeedData_Add_ExpenseItems
-
++ If you are adding a new table — {TransitionVersion}.create_table_{table name}_{why it is created}
++ If you are rename Name a column to BlogName — {TransitionVersion}.alter_table_rename_{old name}_to_{new name}
++ If you are adding more than one table, the name of the feature or some other composite name can be used — {TransitionVersion}.create_table_{why tables are added, i.e. jira story or smth}
++ If you are adding a new column NewColumn to a table Blog — {TransitionVersion}.alter_table_{table name}_{what is altered}
++ If you are adding a view - {TransitionVersion}.create_view_{view name}_{why it is created}
++ If you are alter a view - {TransitionVersion}.alter_view_{view name}_{what it is altered}
++ If you are seeding data — {TransitionVersion}.create_data_{what data is added}
 TODO: Resolve the case and unify it in all places
 
 
 ### Execite Migration
-All sql scripts should have property **Build** -> **Embedded Resource**.
+All sql scripts should have a property **Build** -> **Embedded Resource**.
 In the [Program.cs](./DBUpMigrationPlayground/Program.cs) file you can execute the embdedded resources in the following way.
 ```csharp
 var connectionString =
