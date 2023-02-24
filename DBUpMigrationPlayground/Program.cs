@@ -24,7 +24,7 @@ var connectionString =
             .WithScriptsEmbeddedInAssembly(Assembly.GetExecutingAssembly())
             //.WithScriptsAndDowngradeScriptsEmbeddedInAssembly<SqlDowngradeEnabledTableJournal>(Assembly.GetExecutingAssembly(), DowngradeScriptsSettings.FromFolder())
             .LogToConsole()
-            .WithTransaction()
+            //.WithTransaction()
             .Build();
 //.BuildWithDowngrade(true);
 
