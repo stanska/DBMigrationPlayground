@@ -1,6 +1,6 @@
 ﻿# [DbUp](https://dbup.readthedocs.io/en/latest/) Migration Playground
 
-Contains a sample DbUp playground console application with the popular [Northwind database](./DBUpMigrationPlayground/InitialLoad/NorthwindCreations.sql) database.
+Contains a sample DbUp playground console application with the popular [Northwind database](./DBUpMigrationPlayground/InitialLoad/NorthwindCreation.sql) database.
 You run the application and the scripts will be uploaded to the DB defined in the appsettings.json
 You can always delete the db by [executing the pregenerated drop script](./DBUpMigrationPlayground/InitialLoad/drop_DB.sql). 
 
@@ -36,7 +36,7 @@ Select tables, views, procedures separately and keep them in a separate file.
 Naming conventions are always helpful:
 TODO:PascalCase or snake_case naming convention
 
-+ [Scripts/Up/00001.create_tables_initial_state.sql](./DBUpMigrationPlayground/Scripts/00001.crexate_tables_initial_state.sql)
++ [Scripts/Up/00001.create_tables_initial_state.sql](DBUpMigrationPlayground/Scripts/00001.create_tables_initial_state.sql)
 + [Scripts/Up/00002.create_views_initial_state.sql](./DBUpMigrationPlayground/Scripts/00002.create_views_initial_state.sql)
 + [Scripts/Up/00003.create_data_initial_state.sql](./DBUpMigrationPlayground/Scripts/00003.create_data_initial_state.sql)
 + [Scripts/Up/00004.create_foreign_keys_initial_state.sql](./DBUpMigrationPlayground/Scripts/00004.create_foreign_keys_initial_state.sql)
@@ -70,7 +70,7 @@ dotnet add package dbup
 
 After we have the initial state, we are ready to make the transition script files.
 
-Place the Upload transitions in a Scrits subfolder, you can have different folders as EmbeddedREsource, but mind the execution order as sorting the sql files path lexicographically.
+Place the Upload transitions in a Scrits subfolder, you can have different folders as EmbeddedResource scripts, but mind the execution order as sorting the sql files path lexicographically.
 
 For example, I have crated scrit [Scripts/00006.alter_employeeTerritires_add_NewColumn_table.sql](./DBUpMigrationPlayground/Scripts/00006.alter_employeeTerritires_add_NewColumn_table.sql) to add a new column to a table. 
 Again, naming convetions can be useful:
@@ -129,11 +129,13 @@ There are three types of transactions supported:
 
 ### Automatic Downgrade on Failure
 Our fellow worker Atanas Simeonov, has already [extended DbUp](https://github.com/asimeonov/DbUp.Downgrade) to  downgrade changes already executed by a script.
-In order to downgrade/rollback a given version, you have to create a dowbgrade script upon before script is applied. The script should be: 
-    + with the same name in a **Downgrade** folder 
-    + OR
-    + with a **downgrade** suffix
-as described in the [documentation](https://github.com/asimeonov/DbUp.Downgrade). In order to revert a script, on demand, instead of
+In order to downgrade/rollback a given version, you have to create a downgrade script before script is applied. The script should be: 
+ + with the same name in a **Downgrade** folder 
+ + OR
+ + with a **downgrade** suffix
+as described in the [documentation](https://github.com/asimeonov/DbUp.Downgrade). 
+
+In order to revert a script, on demand, instead of
 ```csharp
     var upgrader =
         DeployChanges.To
@@ -152,7 +154,7 @@ you should run
             .LogToConsole()
             .WithTransaction()
             .BuildWithDowngrade(true);
-You can test this feature by marking [./Scripts/00008.alter_employeeTerritires_add_NewColumn_ExceptionWithDowngrade.sql][./DBUpMigrationPlayground/Scripts/00008.alter_employeeTerritires_add_NewColumn_ExceptionWithDowngrade.sql] as Embedded Resource.
+You can test this feature by marking [./Scripts/00008.alter_employeeTerritires_add_NewColumn_ExceptionWithDowngrade.sql](./DBUpMigrationPlayground/Scripts/00008.alter_employeeTerritires_add_NewColumn_ExceptionWithDowngrade.sql) as Embedded Resource.
 ### [Filter Migrations](https://elanderson.net/2020/08/always-run-migrations-with-dbup/)
 You can filter which migrations should run always or not by using filters
 
@@ -190,10 +192,10 @@ if (result.Successful)
 ```
 
 ### DbUp Schema Versions Table
-All scripts run are kept in **SchemaVersions**. If you don't want to start from scratch, don't drop this table.
+All scripts run are kept in **SchemaVersions** table. If you don't want to start from scratch, don't drop this table.
 
 Scripts 
-Note: If you change the script folder/name, the script will be treated as a new one and will be executed again upon run. Good practice is to create the script as idempotent onse, i.e. check for existance before create/insert.
+**Note**: If you change the script folder/name, the script will be treated as a new one and will be executed again upon run. Good practice is to create the script as idempotent onse, i.e. check for existance before create/insert.
 Example: [00007.alter_employeeTerritires_add_NewColumn_IdempotentScript.sql](./DBUpMigrationPlayground/Scripts/00007.alter_employeeTerritires_add_NewColumn_IdempotentScript.sql)
 
 ### On Startup Migration
