@@ -1,7 +1,7 @@
 ﻿# [DbUp](https://dbup.readthedocs.io/en/latest/) Migration Playground
 
 Contains a sample [DbUp](https://dbup.readthedocs.io/en/latest/) playground console application with the popular [Northwind database](./DBUpMigrationPlayground/InitialLoad/NorthwindCreation.sql) database.
-You run the application and the scripts will be uploaded to the DB defined in the appsettings.json
+You run the application and the already [Embedded Resource scripts](./DBUpMigrationPlayground/Scripts) will be uploaded to the DB configured in the appsettings.json
 You can always delete the db by [executing the pregenerated drop script](./DBUpMigrationPlayground/InitialLoad/drop_DB.sql). 
 
 
